@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Pages サンプル</title>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>  
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="datatables-rowsgroup-master/dataTables.rowsGroup.js"></script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -34,12 +42,75 @@
             text-decoration: underline;
         }
     </style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    const lingData=[
+      {id:1,japanese:"走る",english:"run",pos:"動詞"},
+      {id:2,japanese:"歩く",english:"walk",pos:"動詞"},
+      {id:3,japanese:"鉛筆",english:"pencil",pos:"名詞"},
+      {id:4,japanese:"夢",english:"dream",pos:"名詞"},
+    ]
+    const dtSetting={
+       destroy: true,
+       data: lingData,
+       columns: [
+         {data:"id"},
+         { data: "japanese"},
+         { data: "english"},
+         { data: "pos"}
+       ]
+    };
+    $('#lingTable').DataTable(dtSetting);
+    
+     var table = $('#example').DataTable({
+        'data': [
+           ["山田","0000000","30","マンが"],
+           ["山田","0000000","30","肉"],
+           ["山田","0000000","30","魚"],
+           ["山田","0000000","30","タバコ"],
+           ["山田","0000000","30","皿"],
+           ["山田","0000000","30","人形"],
+           ["山田","0000000","30","ゲーム"],
+           ["佐藤","1111111","21","骨"],
+           ["佐藤","1111111","21","パッド"],
+           ["佐藤","1111111","21","ボール"],
+           ["マイケル","2222222","10","バッド"],
+           ["マイケル","2222222","10","刀"],
+           ["ヨーコ","3333333","40","お花"],
+        ],
+        'columnDefs': [
+           {
+              'targets': [0,1, 2, 3],
+              'orderable': false,
+              'searchable': false
+           }
+        ],
+        'rowsGroup':[0,1,2],
+        "pageLength": 100
+     });   
+ });
+</script>
 </head>
 <body>
     <div class="container">
         <h1>GitHub Pagesへようこそ！</h1>
         <p>これはサンプルのHTMLページです。</p>
         <p>詳しい情報は<a href="https://pages.github.com/" target="_blank">GitHub Pagesの公式サイト</a>をご覧ください。</p>
+    </div>
+
+    <div>
+  <table id="example" class="stripe hover cell-border order-column" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>名前</th>
+            <th>電話</th>
+            <th>年齢</th>
+            <th>購入商品</th>
+        </tr>
+    </thead>
+    </table>
+        
     </div>
 </body>
 </html>
