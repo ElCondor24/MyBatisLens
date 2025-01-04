@@ -8,7 +8,6 @@
             integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
     <script type="text/javascript" charset="utf8"
             src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
-    <script type="text/javascript" src="datatables-rowsgroup-master/dataTables.rowsGroup.js"></script>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
@@ -97,16 +96,19 @@
                 'rowsGroup':[0,1,2],
                 "pageLength": 100
              });
+
+            $('#submitButton').on('click', function() {
+                // 入力エリアの値を取得
+                const inputText = document.getElementById('inputArea').value;
+
+                // 出力エリアに値を設定
+                const convert = bind(inputText);
+                const outputArea = document.getElementById('outputArea');
+                outputArea.textContent = convert;
+            });
          });
 
-        document.getElementById('submitButton').addEventListener('click', function() {
-            // 入力エリアの値を取得
-            const inputText = document.getElementById('inputArea').value;
 
-            // 出力エリアに値を設定
-            const outputArea = bind(inputText);
-            outputArea.textContent = inputText ? inputText : "入力エリアが空です。";
-        });
 
         function bind(src) {
             var statement = extractStatementLine(src);
@@ -208,10 +210,10 @@
     <h1>GitHub Pagesへようこそ！</h1>
     <p>これはサンプルのHTMLページです。</p>
     <p>詳しい情報は<a href="https://pages.github.com/" target="_blank">GitHub Pagesの公式サイト</a>をご覧ください。</p>
-
+    <a href="sample.html">sample</a>
     <div>
         <h1>簡単な入力・出力フォーム</h1>
-        <input type="text" id="inputArea" placeholder="ここにテキストを入力">
+        <textarea id="inputArea" placeholder="ここにテキストを入力"></textarea>
         <button id="submitButton">変換</button>
         <div class="output" id="outputArea">ここに出力が表示されます</div>
     </div>
