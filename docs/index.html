@@ -112,7 +112,7 @@
             $('#convertButton').on('click', function () {
                 // 入力エリアの値を取得
                 const inputText = document.getElementById('inputText').value;
-                const delimiter = document.getElementById('delimiter').value;
+                var delimiter = document.getElementById('delimiter').value;
                 if (delimiter === '') {
                     delimiter = '\n';
                 }
