@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mybatisログ</title>
+    <title>Mybatisログ変換ツール</title>
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"
         integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
     <script type="text/javascript" charset="utf8"
@@ -108,17 +108,53 @@
         const nonQuotedTypes = ["Integer", "Long", "Double", "Float", "Boolean"];
         var err = false;
 
+        const convertToOneLine = (input, delimiter) => {
+            return input
+            .split('\n') // 改行で分割
+            .reduce((acc, line) => {
+                if (line.includes(delimiter)) {
+                    // delimiterを含む行で現在のブロックを完了
+                    acc.push((acc.pop() || '') + line);
+                } else {
+                    // delimiterを含まない行は現在のブロックに追加
+                    acc[acc.length - 1] = (acc[acc.length - 1] || '') + line;
+                }
+                return acc;
+            }, [])
+            .join('\n'); // 改行で結合
+        };
+
+        const extractLines = (input, targetId) => {
+            const preparingRegex = new RegExp(`\\[${targetId}\\] *${PREFIX_SQL}`);
+            const parametersRegex = new RegExp(`\\[${targetId}\\] *${PREFIX_PARAMS}`);
+            const terminatorRegex = new RegExp(`\\[${targetId}\\] *${TERMINATOR}`);
+
+            return input
+            .split('\n') // 改行で分割
+            .reduce((acc, line) => {
+                if (preparingRegex.test(line) || parametersRegex.test(line) || terminatorRegex.test(line)) {
+                    acc.push(line);
+                }
+                return acc;
+            }, [])
+            .join('\n'); // 改行で結合
+        };
+
         $(document).ready(function () {
             $('#convertButton').on('click', function () {
                 // 入力エリアの値を取得
-                const inputText = document.getElementById('inputText').value;
-                var delimiter = document.getElementById('delimiter').value;
-                if (delimiter === '') {
-                    delimiter = '\n';
+                var inputText = document.getElementById('inputText').value;
+                const delimiter = document.getElementById('delimiter').value;
+                if (delimiter != '') {
+                    inputText = convertToOneLine(inputText, delimiter);
+                }
+                const targetId = decument.getElementById('targetId').value;
+                if (targetId != '') {
+                    inputText = extractLines(inputText, targetId);
                 }
 
                 // 出力エリアに値を設定
-                const convert = bind(inputText, delimiter);
+                const convert = bind(inputText);
 
                 const resultBox = document.getElementById('resultBox');
                 resultBox.textContent = `${convert}`;
@@ -136,30 +172,30 @@
             });
         });
 
-        function extractLines(src, delimiter, type) {
-            if (!src || src.length === 0) {
-                return null;
-            }
+        // function extractLines(src, targetId) {
+        //     if (!src || src.length === 0) {
+        //         return null;
+        //     }
 
-            var lines = src.split(delimiter);
-            var result = [];
+        //     var lines = src.split('\n');
+        //     var result = [];
 
-            var preparingRegex = new RegExp(`\\[${type}\\] ${PREFIX_SQL}`);
-            var parametersRegex = new RegExp(`\\[${type}\\] ${PREFIX_PARAMS}`);
-            var terminatorRegex = new RegExp(`\\[${type}\\] ${TERMINATOR}`);
+        //     var preparingRegex = new RegExp(`\\[${targetId}\\]$s%${PREFIX_SQL}`);
+        //     var parametersRegex = new RegExp(`\\[${targetId}\\]$s%${PREFIX_PARAMS}`);
+        //     var terminatorRegex = new RegExp(`\\[${targetId}\\]$s%${TERMINATOR}`);
 
-            for (var i = 0; i < lines.length; i++) {
-                if (preparingRegex.test(lines[i]) || parametersRegex.test(lines[i]) || terminatorRegex.test(lines[i])) {
-                    result.push(lines[i]);
-                }
-            }
+        //     for (var i = 0; i < lines.length; i++) {
+        //         if (preparingRegex.test(lines[i]) || parametersRegex.test(lines[i]) || terminatorRegex.test(lines[i])) {
+        //             result.push(lines[i]);
+        //         }
+        //     }
 
-            return result;
-        }
+        //     return result.join('\n'); // 改行で結合;
+        // }
 
-        function bind(src, sign) {
+        function bind(src) {
             // SQL文を取得
-            var statement = extractStatementLine(src, sign);
+            var statement = extractStatementLine(src);
             if (err) return statement;
             if (statement == null || statement.length === 0) {
                 return null;
@@ -167,7 +203,7 @@
             statement = statement.replace(/\r?\n|\r/g, "");
 
             // パラメータを取得
-            var parametersLine = extractParametersLine(src, sign);
+            var parametersLine = extractParametersLine(src);
             if (err) return parametersLine;
             parametersLine = parametersLine.replace(/\r?\n|\r/g, "");
             // パラメータをSQL文にバインド
@@ -188,7 +224,7 @@
             }
         }
 
-        function extractStatementLine(src, sign) {
+        function extractStatementLine(src) {
             var sqlPrefixStart = src.indexOf(PREFIX_SQL);
             if (sqlPrefixStart == -1) {
                 err = true;
@@ -196,7 +232,7 @@
             }
             var sqlStart = sqlPrefixStart + PREFIX_SQL.length;
             // 改行コードを探す
-            var sqlEnd = src.indexOf(sign, sqlStart);
+            var sqlEnd = src.indexOf('\n', sqlStart);
             if (sqlEnd == -1) {
                 err = true;
                 return "Couldn't find the end of the SQL statement line.";
@@ -204,7 +240,7 @@
             return src.substring(sqlStart, sqlEnd).trim();
         }
 
-        function extractParametersLine(src, sign) {
+        function extractParametersLine(src) {
             var paramsPrefixStart = src.indexOf(PREFIX_PARAMS);
             if (paramsPrefixStart == -1) {
                 err = true;
@@ -221,7 +257,7 @@
                     + "' in the selection.";
             }
             // 改行コードを探す
-            var paramsEnd = src.lastIndexOf(sign, terminatorPos);
+            var paramsEnd = src.lastIndexOf('\n', terminatorPos);
             return src.substring(paramsStart, paramsEnd).trim();
         }
 
@@ -265,19 +301,15 @@
     <div class="container">
         <h1>Mybatisログ変換ツール</h1>
 
-
-        <!-- <div class="form-group">
-            <label for="targetId">対象ID</label>
-            <input type="text" id="targetId" placeholder="対象IDを入力してください">
-        </div> -->
-
         <div class="form-group">
             <label for="inputText">入力欄</label>
             <textarea id="inputText" placeholder="変換したい内容を入力してください"></textarea>
         </div>
         <div class="form-group d-flex align-items-center">
             <label for="delimiter" class="mr-2 mb-0">区切り文字：</label>
-            <input type="text" id="delimiter" placeholder="区切り文字を入力してください">
+            <input type="text" id="delimiter" placeholder="区切り文字">
+            <label for="targetId" class="mr-2 mb-0"> 対象ID：</label>
+            <input type="text" id="targetId" placeholder="対象ID">
         </div>
         <div class="form-group">
             <button id="convertButton">変換</button>
