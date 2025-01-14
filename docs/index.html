@@ -24,7 +24,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 95%;
             margin: 0 auto;
             background: #ffffff;
             padding: 20px;
@@ -49,14 +49,16 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: vertical;
+            font-size: 12px;
         }
 
         .form-group input {
-            width: 100px;
+            width: 200px;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: vertical;
+            font-size: 12px;
         }
 
         .form-group button {
@@ -110,34 +112,40 @@
 
         const convertToOneLine = (input, delimiter) => {
             return input
-            .split('\n') // 改行で分割
-            .reduce((acc, line) => {
-                if (line.includes(delimiter)) {
-                    // delimiterを含む行で現在のブロックを完了
-                    acc.push((acc.pop() || '') + line);
-                } else {
-                    // delimiterを含まない行は現在のブロックに追加
-                    acc[acc.length - 1] = (acc[acc.length - 1] || '') + line;
-                }
-                return acc;
-            }, [])
-            .join('\n'); // 改行で結合
+                .split('\n') // 改行で分割
+                .reduce((acc, line) => {
+
+                    if (line.includes(delimiter)) {
+                        // delimiterを含む行で現在のブロックを完了
+                        acc.push((acc.pop() || '') + line.replace(delimiter, ''));
+                        acc.push(''); // 空行を追加
+                    } else {
+                        // delimiterを含まない行は現在のブロックに追加
+                        var index = acc.length - 1;
+                        if (index < 0) {
+                            index = 0;
+                        }
+                        acc[index] = (acc[index] || '') + line;
+                    }
+                    return acc;
+                }, [])
+                .join('\n'); // 改行で結合
         };
 
         const extractLines = (input, targetId) => {
-            const preparingRegex = new RegExp(`\\[${targetId}\\] *${PREFIX_SQL}`);
-            const parametersRegex = new RegExp(`\\[${targetId}\\] *${PREFIX_PARAMS}`);
-            const terminatorRegex = new RegExp(`\\[${targetId}\\] *${TERMINATOR}`);
+            const preparingRegex = new RegExp(`\\[${targetId}\\].*${PREFIX_SQL}`);
+            const parametersRegex = new RegExp(`\\[${targetId}\\].*${PREFIX_PARAMS}`);
+            const terminatorRegex = new RegExp(`\\[${targetId}\\].*${TERMINATOR}`);
 
             return input
-            .split('\n') // 改行で分割
-            .reduce((acc, line) => {
-                if (preparingRegex.test(line) || parametersRegex.test(line) || terminatorRegex.test(line)) {
-                    acc.push(line);
-                }
-                return acc;
-            }, [])
-            .join('\n'); // 改行で結合
+                .split('\n') // 改行で分割
+                .reduce((acc, line) => {
+                    if (preparingRegex.test(line) || parametersRegex.test(line) || terminatorRegex.test(line)) {
+                        acc.push(line);
+                    }
+                    return acc;
+                }, [])
+                .join('\n'); // 改行で結合
         };
 
         $(document).ready(function () {
@@ -148,7 +156,7 @@
                 if (delimiter != '') {
                     inputText = convertToOneLine(inputText, delimiter);
                 }
-                const targetId = decument.getElementById('targetId').value;
+                const targetId = document.getElementById('targetId').value;
                 if (targetId != '') {
                     inputText = extractLines(inputText, targetId);
                 }
@@ -171,27 +179,6 @@
                 });
             });
         });
-
-        // function extractLines(src, targetId) {
-        //     if (!src || src.length === 0) {
-        //         return null;
-        //     }
-
-        //     var lines = src.split('\n');
-        //     var result = [];
-
-        //     var preparingRegex = new RegExp(`\\[${targetId}\\]$s%${PREFIX_SQL}`);
-        //     var parametersRegex = new RegExp(`\\[${targetId}\\]$s%${PREFIX_PARAMS}`);
-        //     var terminatorRegex = new RegExp(`\\[${targetId}\\]$s%${TERMINATOR}`);
-
-        //     for (var i = 0; i < lines.length; i++) {
-        //         if (preparingRegex.test(lines[i]) || parametersRegex.test(lines[i]) || terminatorRegex.test(lines[i])) {
-        //             result.push(lines[i]);
-        //         }
-        //     }
-
-        //     return result.join('\n'); // 改行で結合;
-        // }
 
         function bind(src) {
             // SQL文を取得
@@ -308,6 +295,8 @@
         <div class="form-group d-flex align-items-center">
             <label for="delimiter" class="mr-2 mb-0">区切り文字：</label>
             <input type="text" id="delimiter" placeholder="区切り文字">
+        </div>
+        <div class="form-group d-flex align-items-center">
             <label for="targetId" class="mr-2 mb-0"> 対象ID：</label>
             <input type="text" id="targetId" placeholder="対象ID">
         </div>
